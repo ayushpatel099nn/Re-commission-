@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Re-commission</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#5a31f4"/>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f6fa; padding: 20px; text-align: center; }
+    .card { background: white; padding: 20px; max-width: 400px; margin: auto; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; }
+    input, button { padding: 10px; margin: 10px 0; width: 100%; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; }
+    button { background: #5a31f4; color: white; border: none; cursor: pointer; }
+    .balance { font-size: 20px; margin-bottom: 20px; }
+    .section { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Re-commission Wallet</h2>
+    <div class="balance">Wallet Balance: ₹<span id="wallet">0</span></div>
+
+    <div class="section">
+      <h3>Redeem Code</h3>
+      <input type="text" id="codeInput" placeholder="Enter Redeem Code"/>
+      <button onclick="redeemCode()">Redeem</button>
+      <div id="redeemMsg"></div>
+    </div>
+
+    <div class="section">
+      <h3>Recharge Mobile</h3>
+      <input type="text" id="mobile" placeholder="Enter Mobile Number"/>
+      <input type="number" id="amount" placeholder="Enter Amount (₹)"/>
+      <button onclick="recharge()">Recharge Now</button>
+      <div id="rechargeMsg"></div>
+    </div>
+  </div>
+
+  <script>
+    let wallet = 0;
+    const walletEl = document.getElementById('wallet');
+    const redeemMsg = document.getElementById('redeemMsg');
+    const rechargeMsg = document.getElementById('rechargeMsg');
+
+    const codes = {
+      'GIFT100': 100,
+      'GIFT500': 500,
+      'GIFT50': 50
+    };
+
+    function updateWalletDisplay() {
+      walletEl.textContent = wallet.toFixed(2);
+    }
+
+    function redeemCode() {
+      const code = document.getElementById('codeInput').value.trim().toUpperCase();
+      if (codes[code]) {
+        const value = codes[code];
+        const commission = value * 0.01;
+        const added = value - commission;
+        wallet += added;
+        redeemMsg.textContent = `Code applied: ₹${value} - ₹${commission.toFixed(2)} commission = ₹${added.toFixed(2)} added.`;
+        delete codes[code];
+      } else {
+        redeemMsg.textContent = "Invalid or used code.";
+      }
+      updateWalletDisplay();
+    }
+
+    function recharge() {
+      const amt = parseFloat(document.getElementById('amount').value);
+      const mob = document.getElementById('mobile').value.trim();
+      if (!mob.match(/^\d{10}$/)) {
+        rechargeMsg.textContent = "Enter valid 10-digit mobile number.";
+        return;
+      }
+      if (amt <= 0 || isNaN(amt)) {
+        rechargeMsg.textContent = "Enter valid amount.";
+        return;
+      }
+      if (wallet >= amt) {
+        wallet -= amt;
+        rechargeMsg.textContent = `Recharge successful: ₹${amt} sent to ${mob}.`;
+      } else {
+        rechargeMsg.textContent = "Insufficient wallet balance.";
+      }
+      updateWalletDisplay();
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker Registered', reg))
+        .catch(err => console.log('Service Worker Failed', err));
+    }
+  </script>
+</body>
+</html>
